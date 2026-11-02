@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Gestión y Seguimiento de Pericias - Informes</title>
+<style>
+  :root {
+    --azul: #1f3a5f;
+    --azul-2: #2e5c8a;
+    --fondo: #f2f4f7;
+    --blanco: #ffffff;
+    --borde: #d0d7e2;
+    --texto: #1d2733;
+    --gris-texto: #5b6777;
+    --ok: #2e7d32;
+    --error: #c62828;
+    --alerta: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Calibri, Carlito, "Segoe UI", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--texto);
+    background: var(--fondo);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ---------- Encabezado ---------- */
+  header.cabecera {
+    background: var(--azul);
+    color: var(--blanco);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .marca h1 { font-size: 1.35rem; margin: 0; }
+  .marca span { font-size: 0.9rem; opacity: 0.85; }
+  .sesion {
+    font-size: 0.92rem;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .sesion .badge {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 14px;
+  }
+  .btn-salir {
+    background: transparent;
+    color: var(--blanco);
+    border: 1px solid rgba(255,255,255,0.6);
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-salir:hover { background: rgba(255,255,255,0.12); }
+
+  /* ---------- Menú ---------- */
+  nav.menu {
+    background: var(--azul-2);
+    display: flex;
+    flex-wrap: wrap;
+  }
+  nav.menu button {
+    background: none;
+    border: none;
+    color: var(--blanco);
+    padding: 12px 18px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+  }
+  nav.menu button:hover { background: rgba(255,255,255,0.12); }
+  nav.menu button.activo { background: var(--azul); font-weight: bold; }
+  nav.menu button[disabled] { opacity: 0.45; cursor: not-allowed; }
+  nav.menu button[disabled]:hover { background: none; }
+
+  /* ---------- Contenido ---------- */
+  main {
+    flex: 1;
+    padding: 24px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .vista { display: none; }
+  .vista.activa { display: block; }
+
+  h2 { color: var(--azul); margin-top: 0; font-size: 1.5rem; }
+  h3 { color: var(--azul-2); font-size: 1.15rem; margin: 0 0 10px; }
+  .migas { color: var(--gris-texto); font-size: 0.9rem; margin-bottom: 6px; }
+  p.justificado { text-align: justify; }
+
+  .tarjeta {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  /* ---------- Formularios ---------- */
+  .grilla {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px 22px;
+  }
+  .campo { display: flex; flex-direction: column; }
+  .campo.ancho-completo { grid-column: 1 / -1; }
+  .campo label { font-weight: bold; margin-bottom: 4px; font-size: 0.95rem; }
+  .campo .obligatorio { color: var(--error); margin-left: 2px; }
+  .campo input, .campo select, .campo textarea {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 8px 10px;
+    border: 1px solid var(--borde);
+    border-radius: 4px;
+    background: var(--blanco);
+  }
+  .campo input:focus, .campo select:focus, .campo textarea:focus {
+    outline: 2px solid var(--azul-2);
+    border-color: var(--azul-2);
+  }
+  .campo input[readonly] { background: #eef2f7; color: var(--gris-texto); }
+  .campo textarea { min-height: 130px; resize: vertical; text-align: justify; }
+  .ayuda { font-size: 0.85rem; color: var(--gris-texto); margin-top: 4px; }
+  .ayuda.contador { text-align: right; }
+  .error-texto { color: var(--error); font-size: 0.87rem; margin-top: 4px; display: none; }
+  .campo.invalido input, .campo.invalido select, .campo.invalido textarea { border-color: var(--error); background: #fff5f5; }
+  .campo.invalido .error-texto { display: block; }
+
+  .acciones {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 9px 18px;
+    border-radius: 4px;
+    border: 1px solid var(--azul);
+    cursor: pointer;
+    background: var(--azul);
+    color: var(--blanco);
+  }
+  .btn:hover { background: var(--azul-2); }
+  .btn.secundario { background: var(--blanco); color: var(--azul); }
+  .btn.secundario:hover { background: #e8eef6; }
+  .btn.peligro { background: var(--blanco); color: var(--error); border-color: var(--error); }
+
+  .mensaje {
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .mensaje.ok { display: block; background: #e8f5e9; color: var(--ok); border: 1px solid #a5d6a7; }
+  .mensaje.alerta { display: block; background: #fff8e1; color: var(--alerta); border: 1px solid #ffe082; }
+
+  .dato-calculado {
+    font-size: 0.85rem;
+    color: var(--azul-2);
+    margin-top: 4px;
+  }
+
+  /* ---------- Tablas ---------- */
+  .tabla-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--blanco);
+  }
+  thead { display: table-header-group; }   /* repite el encabezado en cada página de impresión */
+  tfoot { display: table-footer-group; }
+  th, td {
+    border: 1px solid var(--borde);
+    padding: 9px 10px;
+    text-align: left;
+    font-size: 0.95rem;
+  }
+  th { background: var(--azul); color: var(--blanco); font-weight: bold; white-space: nowrap; }
+  tbody tr:nth-child(even) { background: #f7f9fc; }
+  tbody tr:hover { background: #eaf1fa; }
+  .sin-resultados { text-align: center; color: var(--gris-texto); padding: 20px; }
+  .enlace-accion {
+    background: none;
+    border: none;
+    color: var(--azul-2);
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 0;
+  }
+
+  .paginacion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .paginacion button {
+    font-family: inherit;
+    padding: 6px 12px;
+    border: 1px solid var(--borde);
+    background: var(--blanco);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .paginacion button[disabled] { opacity: 0.45; cursor: not-allowed; }
+  .paginacion .actual { font-weight: bold; }
+
+  /* ---------- Detalle del informe ---------- */
+  .cabecera-informe {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-bottom: 2px solid var(--azul);
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+  }
+  .etiqueta-tipo {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 14px;
+    background: #e3ecf7;
+    color: var(--azul);
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+  dl.datos {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px 16px;
+    margin: 0;
+  }
+  dl.datos dt { font-weight: bold; color: var(--gris-texto); }
+  dl.datos dd { margin: 0; }
+  .contenido-informe {
+    white-space: pre-wrap;
+    text-align: justify;
+    border: 1px solid var(--borde);
+    background: #fbfcfe;
+    border-radius: 4px;
+    padding: 14px 16px;
+  }
+  .grilla-dos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  /* ---------- Pie ---------- */
+  footer.pie {
+    background: var(--azul);
+    color: rgba(255,255,255,0.85);
+    padding: 14px 24px;
+    font-size: 0.88rem;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ---------- Login ---------- */
+  .login-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .login-caja {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    padding: 28px 30px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .login-caja h2 { margin: 6px 0 4px; }
+  .login-caja .campo { margin-bottom: 14px; }
+  .login-caja input { width: 100%; }
+  .login-marca { color: var(--azul-2); font-weight: bold; font-size: 0.9rem; }
+
+  /* ---------- Impresión ---------- */
+  @media print {
+    header.cabecera, nav.menu, footer.pie, .acciones, .btn, .paginacion, .no-imprimir { display: none !important; }
+    body { background: #fff; }
+    .tarjeta { box-shadow: none; border: none; }
+    .vista { display: none !important; }
+    #vista-informe { display: block !important; }
+    main { padding: 0; }
+  }
+
+  @media (max-width: 640px) {
+    header.cabecera, main, footer.pie { padding-left: 14px; padding-right: 14px; }
+    dl.datos { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN (RQF07) ============ -->
+<section id="login" class="login-wrap">
+  <form id="form-login" class="login-caja" novalidate>
+    <div class="login-marca">JustiData Solutions S.A.</div>
+    <h2>Iniciar sesión</h2>
+    <p class="ayuda">Sistema de Gestión y Seguimiento de Pericias</p>
+    <div id="msg-login" class="mensaje" role="alert"></div>
+    <div class="campo">
+      <label for="login-usuario">Usuario</label>
+      <input id="login-usuario" type="text" autocomplete="username" autofocus>
+    </div>
+    <div class="campo">
+      <label for="login-clave">Contraseña</label>
+      <input id="login-clave" type="password" autocomplete="current-password">
+    </div>
+    <div class="acciones">
+      <button type="submit" class="btn">Ingresar</button>
+    </div>
+    <p class="ayuda" style="margin-top:16px">Usuarios de prueba: <strong>operador</strong>, <strong>perito</strong> o <strong>supervisor</strong>. Contraseña: <strong>1234</strong>.</p>
+  </form>
+</section>
+
+<div id="app" style="display:none">
+
+<!-- ============ ENCABEZADO ============ -->
+<header class="cabecera">
+  <div class="marca">
+    <h1>Sistema de Gestión y Seguimiento de Pericias</h1>
+    <span>JustiData Solutions S.A.</span>
+  </div>
+  <div class="sesion">
+    <span class="badge" id="ses-usuario"></span>
+    <span class="badge" id="ses-rol"></span>
+    <span id="fecha-sesion"></span>
+    <button class="btn-salir" type="button" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+</header>
+
+<!-- ============ MENÚ ============ -->
+<nav class="menu" aria-label="Menú principal">
+  <button type="button" data-vista="cargar" data-roles="operador perito" onclick="mostrarVista('cargar')">Cargar informe</button>
+  <button type="button" data-vista="buscar" data-roles="operador perito supervisor" onclick="mostrarVista('buscar')">Buscar informes</button>
+  <button type="button" data-vista="informe" data-roles="operador perito supervisor" onclick="mostrarVista('informe')">Ver informe</button>
+  <button type="button" disabled title="Módulo fuera de esta entrega">Pericias</button>
+  <button type="button" disabled title="Módulo fuera de esta entrega">Personas</button>
+  <button type="button" disabled title="Módulo fuera de esta entrega">Reportes</button>
+</nav>
+
+<main>
+
+  <!-- ============ VISTA 1: FORMULARIO DE CARGA DE INFORME ============ -->
+  <section id="vista-cargar" class="vista activa" aria-labelledby="t-cargar">
+    <div class="migas">Informes &gt; Cargar nuevo informe</div>
+    <h2 id="t-cargar">Carga de nuevo informe pericial</h2>
+
+    <div id="msg-cargar" class="mensaje" role="status"></div>
+
+    <div class="tarjeta">
+      <p class="justificado">
+        Complete los datos del informe presentado por el perito. Los campos marcados con
+        <span style="color:var(--error)">*</span> son obligatorios. El tipo de informe se
+        determina automáticamente: el primer informe de una pericia es un <strong>Informe Pericial</strong>
+        y los siguientes son <strong>Ampliaciones de Pericia</strong>.
+      </p>
+    </div>
+
+    <form id="form-informe" class="tarjeta" novalidate>
+      <h3>Datos de la pericia</h3>
+      <div class="grilla">
+        <div class="campo" id="campo-pericia">
+          <label for="pericia">Pericia (Organismo + N° de pericia)<span class="obligatorio">*</span></label>
+          <select id="pericia" name="pericia"></select>
+          <span class="error-texto">Seleccione una pericia.</span>
+        </div>
+        <div class="campo">
+          <label for="tipo-pericia">Tipo de pericia</label>
+          <input id="tipo-pericia" type="text" readonly value="—">
+        </div>
+        <div class="campo">
+          <label for="estado-pericia">Estado actual de la pericia</label>
+          <input id="estado-pericia" type="text" readonly value="—">
+        </div>
+      </div>
+
+      <h3 style="margin-top:24px">Datos del informe</h3>
+      <div class="grilla">
+        <div class="campo">
+          <label for="numero-informe">N° de informe</label>
+          <input id="numero-informe" type="text" readonly>
+          <span class="ayuda">Asignado automáticamente por el sistema.</span>
+        </div>
+        <div class="campo">
+          <label for="tipo-informe">Tipo de informe</label>
+          <input id="tipo-informe" type="text" readonly value="—">
+          <span class="dato-calculado" id="ayuda-tipo"></span>
+        </div>
+        <div class="campo" id="campo-fecha">
+          <label for="fecha-entrega">Fecha de entrega<span class="obligatorio">*</span></label>
+          <input id="fecha-entrega" name="fecha" type="date">
+          <span class="error-texto">Ingrese una fecha válida (no puede ser futura).</span>
+        </div>
+        <div class="campo" id="campo-perito">
+          <label for="perito">Perito responsable<span class="obligatorio">*</span></label>
+          <select id="perito" name="perito"></select>
+          <span class="error-texto">Seleccione el perito responsable.</span>
+        </div>
+        <div class="campo ancho-completo" id="campo-contenido">
+          <label for="contenido">Descripción / contenido del resultado<span class="obligatorio">*</span></label>
+          <textarea id="contenido" name="contenido" maxlength="2000" placeholder="Describa las actuaciones técnicas realizadas y los resultados o hallazgos del informe..."></textarea>
+          <div class="ayuda contador"><span id="contador">0</span> / 2000 caracteres (mínimo 30)</div>
+          <span class="error-texto">El contenido es obligatorio (mínimo 30 caracteres).</span>
+        </div>
+        <div class="campo ancho-completo" id="campo-adjunto">
+          <label for="adjunto">Archivo adjunto</label>
+          <input id="adjunto" name="adjunto" type="file" accept=".pdf,.docx">
+          <span class="ayuda">Formatos permitidos: PDF o DOCX. Tamaño máximo: 10 MB.</span>
+          <span class="error-texto" id="error-adjunto">Archivo no válido.</span>
+        </div>
+      </div>
+
+      <div class="acciones">
+        <button type="button" class="btn secundario" onclick="limpiarFormulario()">Limpiar</button>
+        <button type="submit" class="btn">Guardar informe</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ============ VISTA 2: BÚSQUEDA DE INFORMES ============ -->
+  <section id="vista-buscar" class="vista" aria-labelledby="t-buscar">
+    <div class="migas">Informes &gt; Buscar informes</div>
+    <h2 id="t-buscar">Búsqueda de informes</h2>
+
+    <form id="form-busqueda" class="tarjeta" novalidate>
+      <h3>Criterios de búsqueda</h3>
+      <div class="grilla">
+        <div class="campo">
+          <label for="f-numero">N° de informe</label>
+          <input id="f-numero" type="text" placeholder="Ej: INF-0003">
+        </div>
+        <div class="campo">
+          <label for="f-organismo">Organismo</label>
+          <select id="f-organismo"></select>
+        </div>
+        <div class="campo">
+          <label for="f-nropericia">N° de pericia</label>
+          <input id="f-nropericia" type="text" placeholder="Ej: 1245/2026">
+        </div>
+        <div class="campo">
+          <label for="f-tipopericia">Tipo de pericia</label>
+          <select id="f-tipopericia"></select>
+        </div>
+        <div class="campo">
+          <label for="f-perito">Perito</label>
+          <select id="f-perito"></select>
+        </div>
+        <div class="campo">
+          <label for="f-tipoinforme">Tipo de informe</label>
+          <select id="f-tipoinforme">
+            <option value="">Todos</option>
+            <option value="Informe Pericial">Informe Pericial</option>
+            <option value="Ampliación de Pericia">Ampliación de Pericia</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="f-desde">Fecha de entrega desde</label>
+          <input id="f-desde" type="date">
+        </div>
+        <div class="campo">
+          <label for="f-hasta">Fecha de entrega hasta</label>
+          <input id="f-hasta" type="date">
+          <span class="error-texto" id="error-rango">La fecha "hasta" no puede ser anterior a "desde".</span>
+        </div>
+      </div>
+      <div class="acciones">
+        <button type="button" class="btn secundario" onclick="limpiarBusqueda()">Limpiar filtros</button>
+        <button type="submit" class="btn">Buscar</button>
+      </div>
+    </form>
+
+    <div class="tarjeta">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <h3 style="margin:0">Resultados</h3>
+        <span id="cantidad-resultados" style="color:var(--gris-texto)"></span>
+      </div>
+      <div class="tabla-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>N° informe</th>
+              <th>Fecha de entrega</th>
+              <th>Tipo de informe</th>
+              <th>Organismo</th>
+              <th>N° de pericia</th>
+              <th>Tipo de pericia</th>
+              <th>Perito responsable</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-resultados"></tbody>
+        </table>
+      </div>
+      <div class="paginacion no-imprimir" id="paginacion"></div>
+    </div>
+  </section>
+
+  <!-- ============ VISTA 3: INFORME POR PANTALLA ============ -->
+  <section id="vista-informe" class="vista" aria-labelledby="t-informe">
+    <div class="migas no-imprimir">Informes &gt; Búsqueda &gt; Detalle del informe</div>
+    <h2 id="t-informe" class="no-imprimir">Detalle del informe</h2>
+
+    <div id="detalle-vacio" class="tarjeta no-imprimir">
+      <p class="justificado">No hay ningún informe seleccionado. Diríjase a <strong>Buscar informes</strong> y elija uno para visualizarlo.</p>
+    </div>
+
+    <article id="detalle" class="tarjeta" style="display:none">
+      <div class="cabecera-informe">
+        <div>
+          <h2 style="margin-bottom:6px" id="det-numero"></h2>
+          <span class="etiqueta-tipo" id="det-tipo"></span>
+        </div>
+        <div class="acciones no-imprimir" style="margin:0">
+          <button type="button" class="btn secundario" onclick="mostrarVista('buscar')">Volver a la búsqueda</button>
+          <button type="button" class="btn" onclick="window.print()">Imprimir</button>
+        </div>
+      </div>
+
+      <div class="grilla-dos">
+        <div>
+          <h3>Datos del informe</h3>
+          <dl class="datos">
+            <dt>N° de informe</dt><dd id="det-n2"></dd>
+            <dt>Tipo de informe</dt><dd id="det-tipo2"></dd>
+            <dt>Fecha de entrega</dt><dd id="det-fecha"></dd>
+            <dt>Archivo adjunto</dt><dd id="det-adjunto"></dd>
+          </dl>
+        </div>
+        <div>
+          <h3>Datos de la pericia</h3>
+          <dl class="datos">
+            <dt>Organismo</dt><dd id="det-organismo"></dd>
+            <dt>N° de pericia</dt><dd id="det-nropericia"></dd>
+            <dt>Expediente</dt><dd id="det-expediente"></dd>
+            <dt>Tipo de pericia</dt><dd id="det-tipopericia"></dd>
+            <dt>Área técnica</dt><dd id="det-area"></dd>
+            <dt>Estado actual</dt><dd id="det-estado"></dd>
+          </dl>
+        </div>
+      </div>
+
+      <h3 style="margin-top:22px">Perito responsable</h3>
+      <dl class="datos">
+        <dt>Nombre</dt><dd id="det-perito"></dd>
+        <dt>N° de matrícula</dt><dd id="det-matricula"></dd>
+        <dt>Organismo profesional</dt><dd id="det-orgprof"></dd>
+        <dt>Especialidad</dt><dd id="det-especialidad"></dd>
+      </dl>
+
+      <h3 style="margin-top:22px">Descripción y resultado</h3>
+      <div class="contenido-informe" id="det-contenido"></div>
+    </article>
+  </section>
+
+</main>
+
+<!-- ============ PIE ============ -->
+<footer class="pie">
+  <span>© 2026 JustiData Solutions S.A. - Sistema de Gestión y Seguimiento de Pericias</span>
+</footer>
+</div>
+
+<script>
+/* ==========================================================
+   DATOS DE PRUEBA (simulan las tablas PERICIA, PERITO e INFORME)
+   ========================================================== */
+const organismos = [
+  "Juzgado Civil y Comercial N°1",
+  "Fiscalía de Instrucción N°3",
+  "Juzgado Laboral N°2",
+  "Estudio Jurídico Ríos & Asociados"
+];
+
+const tiposPericia = ["Médica", "Psicológica", "Informática", "Contable", "Accidentológica", "Documentológica"];
+
+const peritos = [
+  { id: 1, nombre: "Lic. Carlos Benítez",  matricula: "MP-1021", orgProf: "Colegio de Peritos Informáticos", especialidad: "Informática" },
+  { id: 2, nombre: "Dra. Laura Sosa",      matricula: "MP-0458", orgProf: "Colegio Médico de Entre Ríos",    especialidad: "Médica" },
+  { id: 3, nombre: "Cr. Martín Acosta",    matricula: "MP-0733", orgProf: "Consejo Profesional de Ciencias Económicas", especialidad: "Contable" },
+  { id: 4, nombre: "Lic. Sofía Herrera",   matricula: "MP-0912", orgProf: "Colegio de Psicólogos",           especialidad: "Psicológica" }
+];
+
+const pericias = [
+  { id: 1, organismo: organismos[0], numero: "1245/2026", expediente: "EXP-8871", area: "Área Informática",     tipo: "Informática",     estado: "En análisis" },
+  { id: 2, organismo: organismos[1], numero: "0387/2026", expediente: "EXP-2290", area: "Área Documentológica", tipo: "Documentológica", estado: "En elaboración de informe" },
+  { id: 3, organismo: organismos[2], numero: "0912/2026", expediente: "EXP-5514", area: "Área Contable",        tipo: "Contable",        estado: "Solicitada" },
+  { id: 4, organismo: organismos[3], numero: "0055/2026", expediente: "EXP-1033", area: "Área Accidentológica", tipo: "Accidentológica", estado: "Finalizada" }
+];
+
+// Cada informe queda asociado a una pericia (RQF03) y a un perito responsable.
+let informes = [
+  { numero: "INF-0001", pericia: 1, perito: 1, tipo: "Informe Pericial",       fecha: "2026-09-14", adjunto: "informe_1245_2026.pdf",
+    contenido: "Se realizó el análisis forense del equipo informático secuestrado. Se recuperaron archivos eliminados y se identificó el historial de accesos durante el período investigado. Los resultados se detallan en el anexo técnico." },
+  { numero: "INF-0002", pericia: 1, perito: 1, tipo: "Ampliación de Pericia", fecha: "2026-10-02", adjunto: "",
+    contenido: "Ampliación del análisis anterior con la copia espejo del disco rígido solicitada por el juzgado. Se confirman las conclusiones preliminares." },
+  { numero: "INF-0003", pericia: 2, perito: 4, tipo: "Informe Pericial",       fecha: "2026-10-09", adjunto: "pericia_0387_2026.docx",
+    contenido: "Se efectuó el cotejo de firmas y grafismos sobre el documento cuestionado. El resultado indica compatibilidad parcial con las muestras indubitadas aportadas." },
+  { numero: "INF-0004", pericia: 4, perito: 2, tipo: "Informe Pericial",       fecha: "2026-08-21", adjunto: "informe_0055_2026.pdf",
+    contenido: "Evaluación de las lesiones registradas en la historia clínica del evaluado, con descripción de la mecánica probable del hecho y secuelas constatadas." }
+];
+
+/* ==========================================================
+   UTILIDADES
+   ========================================================== */
+const $ = (id) => document.getElementById(id);
+
+function nombrePerito(id) { const p = peritos.find(x => x.id === id); return p ? p.nombre : "—"; }
+function buscarPericia(id) { return pericias.find(x => x.id === id); }
+function fechaLegible(iso) {
+  if (!iso) return "—";
+  const [a, m, d] = iso.split("-");
+  return `${d}/${m}/${a}`;
+}
+function esFechaFutura(iso) {
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  return new Date(iso + "T00:00:00") > hoy;
+}
+function fechaHoyISO() {
+  const h = new Date();
+  return `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, "0")}-${String(h.getDate()).padStart(2, "0")}`;
+}
+function siguienteNumeroInforme() {
+  const max = informes.reduce((m, i) => Math.max(m, parseInt(i.numero.replace("INF-", ""), 10)), 0);
+  return "INF-" + String(max + 1).padStart(4, "0");
+}
+function mostrarMensaje(id, texto, tipo) {
+  const el = $(id);
+  el.textContent = texto;
+  el.className = "mensaje " + tipo;
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+function ocultarMensaje(id) { const el = $(id); el.className = "mensaje"; el.textContent = ""; }
+
+/* ==========================================================
+   NAVEGACIÓN ENTRE VISTAS
+   ========================================================== */
+function mostrarVista(nombre) {
+  if (!usuarioActual) return;
+  const boton = document.querySelector(`nav.menu button[data-vista="${nombre}"]`);
+  if (boton && !boton.dataset.roles.split(" ").includes(usuarioActual.rol)) return;
+  document.querySelectorAll(".vista").forEach(v => v.classList.remove("activa"));
+  $("vista-" + nombre).classList.add("activa");
+  document.querySelectorAll("nav.menu button[data-vista]").forEach(b => {
+    b.classList.toggle("activo", b.dataset.vista === nombre);
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function cerrarSesion() {
+  if (!confirm("¿Desea cerrar la sesión?")) return;
+  usuarioActual = null;
+  $("form-login").reset();
+  ocultarMensaje("msg-login");
+  $("app").style.display = "none";
+  $("login").style.display = "flex";
+  $("login-usuario").focus();
+}
+
+/* ==========================================================
+   VISTA 1: FORMULARIO DE CARGA DE INFORME
+   ========================================================== */
+function cargarSelectPericias() {
+  const sel = $("pericia");
+  sel.innerHTML = '<option value="">— Seleccione una pericia —</option>' +
+    pericias.map(p => `<option value="${p.id}">${p.organismo} — N° ${p.numero}</option>`).join("");
+}
+function cargarSelectPeritos() {
+  $("perito").innerHTML = '<option value="">— Seleccione un perito —</option>' +
+    peritos.map(p => `<option value="${p.id}">${p.nombre} (${p.especialidad})</option>`).join("");
+}
+
+function actualizarDatosPericia() {
+  const p = buscarPericia(parseInt($("pericia").value, 10));
+  if (!p) {
+    $("tipo-pericia").value = "—";
+    $("estado-pericia").value = "—";
+    $("tipo-informe").value = "—";
+    $("ayuda-tipo").textContent = "";
+    return;
+  }
+  $("tipo-pericia").value = p.tipo;
+  $("estado-pericia").value = p.estado;
+  const yaTieneInforme = informes.some(i => i.pericia === p.id);
+  const tipo = yaTieneInforme ? "Ampliación de Pericia" : "Informe Pericial";
+  $("tipo-informe").value = tipo;
+  $("ayuda-tipo").textContent = yaTieneInforme
+    ? "Ya existe un informe para esta pericia: se registrará como ampliación."
+    : "Primer informe de la pericia.";
+  $("numero-informe").value = siguienteNumeroInforme();
+}
+
+function validarFormulario() {
+  let ok = true;
+  const reglas = [
+    { campo: "campo-pericia", ok: $("pericia").value !== "" },
+    { campo: "campo-fecha",   ok: $("fecha-entrega").value !== "" && !esFechaFutura($("fecha-entrega").value) },
+    { campo: "campo-perito",  ok: $("perito").value !== "" },
+    { campo: "campo-contenido", ok: $("contenido").value.trim().length >= 30 }
+  ];
+  reglas.forEach(r => {
+    $(r.campo).classList.toggle("invalido", !r.ok);
+    if (!r.ok) ok = false;
+  });
+
+  // Validación del adjunto (si se seleccionó)
+  const f = $("adjunto").files[0];
+  let adjOk = true;
+  if (f) {
+    const ext = f.name.split(".").pop().toLowerCase();
+    const extOk = ["pdf", "docx"].includes(ext);
+    const sizeOk = f.size <= 10 * 1024 * 1024;
+    adjOk = extOk && sizeOk;
+    $("error-adjunto").textContent = !extOk
+      ? "Formato no permitido. Use PDF o DOCX."
+      : "El archivo supera los 10 MB permitidos.";
+  }
+  $("campo-adjunto").classList.toggle("invalido", !adjOk);
+  if (!adjOk) ok = false;
+
+  return ok;
+}
+
+function limpiarFormulario() {
+  $("form-informe").reset();
+  $("tipo-pericia").value = "—";
+  $("estado-pericia").value = "—";
+  $("tipo-informe").value = "—";
+  $("ayuda-tipo").textContent = "";
+  $("numero-informe").value = siguienteNumeroInforme();
+  $("contador").textContent = "0";
+  document.querySelectorAll("#form-informe .campo").forEach(c => c.classList.remove("invalido"));
+  ocultarMensaje("msg-cargar");
+}
+
+$("pericia").addEventListener("change", () => {
+  actualizarDatosPericia();
+  $("campo-pericia").classList.remove("invalido");
+});
+$("contenido").addEventListener("input", () => {
+  $("contador").textContent = $("contenido").value.length;
+});
+$("fecha-entrega").max = fechaHoyISO();
+
+$("form-informe").addEventListener("submit", (e) => {
+  e.preventDefault();
+  ocultarMensaje("msg-cargar");
+
+  if (!validarFormulario()) {
+    mostrarMensaje("msg-cargar", "Revise los campos marcados en rojo antes de guardar.", "alerta");
+    return;
+  }
+
+  const pericia = buscarPericia(parseInt($("pericia").value, 10));
+  const f = $("adjunto").files[0];
+  const nuevo = {
+    numero: siguienteNumeroInforme(),
+    pericia: pericia.id,
+    perito: parseInt($("perito").value, 10),
+    tipo: $("tipo-informe").value,
+    fecha: $("fecha-entrega").value,
+    adjunto: f ? f.name : "",
+    contenido: $("contenido").value.trim()
+  };
+  informes.push(nuevo);
+
+  mostrarMensaje("msg-cargar", `El informe ${nuevo.numero} se guardó correctamente.`, "ok");
+  limpiarFormulario();
+  mostrarMensaje("msg-cargar", `El informe ${nuevo.numero} se guardó correctamente.`, "ok");
+});
+
+/* ==========================================================
+   VISTA 2: BÚSQUEDA DE INFORMES
+   ========================================================== */
+const TAMANO_PAGINA = 5;
+let resultadosBusqueda = [];
+let paginaActual = 1;
+
+function llenarFiltros() {
+  $("f-organismo").innerHTML = '<option value="">Todos</option>' +
+    organismos.map(o => `<option value="${o}">${o}</option>`).join("");
+  $("f-tipopericia").innerHTML = '<option value="">Todos</option>' +
+    tiposPericia.map(t => `<option value="${t}">${t}</option>`).join("");
+  $("f-perito").innerHTML = '<option value="">Todos</option>' +
+    peritos.map(p => `<option value="${p.id}">${p.nombre}</option>`).join("");
+}
+
+function filaInforme(inf) {
+  const p = buscarPericia(inf.pericia);
+  return {
+    informe: inf,
+    pericia: p,
+    perito: nombrePerito(inf.perito)
+  };
+}
+
+function ejecutarBusqueda() {
+  const num = $("f-numero").value.trim().toLowerCase();
+  const org = $("f-organismo").value;
+  const nro = $("f-nropericia").value.trim();
+  const tp  = $("f-tipopericia").value;
+  const per = $("f-perito").value;
+  const ti  = $("f-tipoinforme").value;
+  const desde = $("f-desde").value;
+  const hasta = $("f-hasta").value;
+
+  const rangoInvalido = desde && hasta && hasta < desde;
+  $("error-rango").style.display = rangoInvalido ? "block" : "none";
+  if (rangoInvalido) return;
+
+  resultadosBusqueda = informes
+    .map(filaInforme)
+    .filter(r => {
+      if (num && !r.informe.numero.toLowerCase().includes(num)) return false;
+      if (org && r.pericia.organismo !== org) return false;
+      if (nro && !r.pericia.numero.includes(nro)) return false;
+      if (tp && r.pericia.tipo !== tp) return false;
+      if (per && String(r.informe.perito) !== per) return false;
+      if (ti && r.informe.tipo !== ti) return false;
+      if (desde && r.informe.fecha < desde) return false;
+      if (hasta && r.informe.fecha > hasta) return false;
+      return true;
+    })
+    .sort((a, b) => b.informe.fecha.localeCompare(a.informe.fecha));
+
+  paginaActual = 1;
+  renderResultados();
+}
+
+function renderResultados() {
+  const total = resultadosBusqueda.length;
+  $("cantidad-resultados").textContent = `${total} informe${total === 1 ? "" : "s"} encontrado${total === 1 ? "" : "s"}`;
+
+  const tbody = $("tbody-resultados");
+  if (total === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" class="sin-resultados">No se encontraron informes con los criterios indicados.</td></tr>`;
+    $("paginacion").innerHTML = "";
+    return;
+  }
+
+  const inicio = (paginaActual - 1) * TAMANO_PAGINA;
+  const pagina = resultadosBusqueda.slice(inicio, inicio + TAMANO_PAGINA);
+
+  tbody.innerHTML = pagina.map(r => `
+    <tr>
+      <td>${r.informe.numero}</td>
+      <td>${fechaLegible(r.informe.fecha)}</td>
+      <td>${r.informe.tipo}</td>
+      <td>${r.pericia.organismo}</td>
+      <td>${r.pericia.numero}</td>
+      <td>${r.pericia.tipo}</td>
+      <td>${r.perito}</td>
+      <td><button class="enlace-accion" type="button" onclick="verInforme('${r.informe.numero}')">Ver informe</button></td>
+    </tr>`).join("");
+
+  const totalPaginas = Math.ceil(total / TAMANO_PAGINA);
+  $("paginacion").innerHTML = `
+    <button type="button" onclick="cambiarPagina(-1)" ${paginaActual === 1 ? "disabled" : ""}>&laquo; Anterior</button>
+    <span>Página <span class="actual">${paginaActual}</span> de ${totalPaginas}</span>
+    <button type="button" onclick="cambiarPagina(1)" ${paginaActual === totalPaginas ? "disabled" : ""}>Siguiente &raquo;</button>`;
+}
+
+function cambiarPagina(delta) {
+  paginaActual += delta;
+  renderResultados();
+}
+
+function limpiarBusqueda() {
+  $("form-busqueda").reset();
+  $("error-rango").style.display = "none";
+  ejecutarBusqueda();
+}
+
+$("form-busqueda").addEventListener("submit", (e) => {
+  e.preventDefault();
+  ejecutarBusqueda();
+});
+
+/* ==========================================================
+   VISTA 3: INFORME POR PANTALLA
+   ========================================================== */
+function verInforme(numero) {
+  const inf = informes.find(i => i.numero === numero);
+  if (!inf) return;
+  const p = buscarPericia(inf.pericia);
+  const per = peritos.find(x => x.id === inf.perito);
+
+  $("detalle-vacio").style.display = "none";
+  $("detalle").style.display = "block";
+
+  $("det-numero").textContent = `Informe ${inf.numero}`;
+  $("det-tipo").textContent = inf.tipo;
+  $("det-n2").textContent = inf.numero;
+  $("det-tipo2").textContent = inf.tipo;
+  $("det-fecha").textContent = fechaLegible(inf.fecha);
+  $("det-adjunto").textContent = inf.adjunto || "Sin archivo adjunto";
+
+  $("det-organismo").textContent = p.organismo;
+  $("det-nropericia").textContent = p.numero;
+  $("det-expediente").textContent = p.expediente;
+  $("det-tipopericia").textContent = p.tipo;
+  $("det-area").textContent = p.area;
+  $("det-estado").textContent = p.estado;
+
+  $("det-perito").textContent = per.nombre;
+  $("det-matricula").textContent = per.matricula;
+  $("det-orgprof").textContent = per.orgProf;
+  $("det-especialidad").textContent = per.especialidad;
+
+  $("det-contenido").textContent = inf.contenido;
+
+  mostrarVista("informe");
+}
+
+/* ==========================================================
+   INICIALIZACIÓN
+   ========================================================== */
+$("fecha-sesion").textContent = new Date().toLocaleDateString("es-AR", { day: "2-digit", month: "long", year: "numeric" });
+cargarSelectPericias();
+cargarSelectPeritos();
+llenarFiltros();
+$("numero-informe").value = siguienteNumeroInforme();
+ejecutarBusqueda();
+
+/* ==========================================================
+   AUTENTICACIÓN Y ROLES (RQF07 / RQF08)
+   Prototipo: las credenciales están en el código solo a modo de demo.
+   En el sistema real las contraseñas se almacenan cifradas.
+   ========================================================== */
+const usuarios = {
+  operador:   { clave: "1234", nombre: "M. Gómez",     rol: "operador",   etiqueta: "Operador administrativo" },
+  perito:     { clave: "1234", nombre: "C. Benítez",   rol: "perito",     etiqueta: "Perito profesional" },
+  supervisor: { clave: "1234", nombre: "L. Ferreyra",  rol: "supervisor", etiqueta: "Supervisor" }
+};
+let usuarioActual = null;
+
+function iniciarSesion(e) {
+  e.preventDefault();
+  const usuario = $("login-usuario").value.trim().toLowerCase();
+  const clave = $("login-clave").value;
+  const datos = usuarios[usuario];
+
+  if (!usuario || !clave) {
+    mostrarMensaje("msg-login", "Ingrese usuario y contraseña.", "alerta");
+    return;
+  }
+  if (!datos || datos.clave !== clave) {
+    mostrarMensaje("msg-login", "Usuario o contraseña incorrectos.", "alerta");
+    $("login-clave").value = "";
+    return;
+  }
+
+  usuarioActual = { usuario, nombre: datos.nombre, rol: datos.rol, etiqueta: datos.etiqueta };
+
+  $("ses-usuario").textContent = "Usuario: " + usuarioActual.nombre;
+  $("ses-rol").textContent = "Rol: " + usuarioActual.etiqueta;
+
+  // Mostrar solo los módulos permitidos para el rol
+  let primera = null;
+  document.querySelectorAll("nav.menu button[data-roles]").forEach(b => {
+    const permitido = b.dataset.roles.split(" ").includes(usuarioActual.rol);
+    b.style.display = permitido ? "" : "none";
+    if (permitido && !primera) primera = b.dataset.vista;
+  });
+
+  $("login").style.display = "none";
+  $("app").style.display = "block";
+  $("form-login").reset();
+  ocultarMensaje("msg-login");
+  mostrarVista(primera);
+}
+
+$("form-login").addEventListener("submit", iniciarSesion);
+
+// Al cargar, la aplicación queda oculta y se muestra el login
+$("app").style.display = "none";
+$("login").style.display = "flex";
+</script>
+</body>
+</html>
